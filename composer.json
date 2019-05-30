@@ -1,0 +1,18 @@
+{
+    "name": "musaev/long-term_homework",
+    "description": "Long-term homework (site parsing) instructions in the readme.txr file",
+    "authors": [
+        {
+            "name": "Musaev Roman",
+            "email": "mysaevpoma@gmail.com"
+        }
+    ],
+	
+    "autoload": {
+        "classmap": [
+		"parse_page/parse_page.php",
+		"phpQuery/phpQuery.php"
+		]
+		
+    }
+}
