@@ -7,7 +7,7 @@ class parse_page {
 	 */
 	function parse_categories() {
 		$url = 'https://www.avito.ru/moskva/';
-		$file = get_contents($url);
+		$file = $this->get_contents($url);
 		$doc = phpQuery::newDocument($file);
 		
 		//!Массив категорий
@@ -44,6 +44,13 @@ class parse_page {
 	 */
 	function parsePage($__nameOfCategory, $__from, $__to)
 	{
+		//Текст запроса 
+		preg_match_all('#[?]q=.+#uis', $__nameOfCategory, $request);
+		$request = array_shift($request);
+		$request = str_replace('?q=', '', $request);
+		$request = array_shift($request);
+		
+		//Сам парсинг
 		$result = [];
 		$url = 'https://www.avito.ru/moskva'.$__nameOfCategory;
 
@@ -56,7 +63,7 @@ class parse_page {
 			: '';
 
 		//Забирает количество найденных объявлений
-		$file = get_contents($url);
+		$file = $this->get_contents($url);
 		$doc = phpQuery::newDocument($file);
 		$find = $doc->find('.layout-internal .l-content .page-title span:eq(1)');
 		$find = pq($find)->text();
@@ -85,7 +92,7 @@ class parse_page {
 				$name = $info->find('.item_table-header h3 a')->text();
 				$price = $info->find('.item_table-header .about .price')->text();
 				$picture = $ad->find('.item-photo .item-slider .item-slider-list .item-slider-item .item-slider-image img')->attr('src');
-				$metro = $info->find('.data p')->text();
+				$metro = $info->find('.data p:eq(1)')->text();
 				$date = $info->find('.data div')->attr('data-absolute-date');
 
 				//Парсинг мобильного телефона
@@ -93,30 +100,35 @@ class parse_page {
 				$newDoc = phpQuery::newDocument($newFile);
 				$newDoc = pq($newDoc);
 				$phone = $newDoc->find('.cWHK8 ._1avFw ._1BFyF ._3vWKQ a')->attr('href');
+				
+				$metro = str_replace('\n', '', $metro);
 
 				// Был плохой инет, все объявления не мог загрузить, поэтому загружал по 3-5 с каждой страницы
 				//Номер объявления на странице
 				$i++;
-				if ($i > 2)
+				/*if ($i > 2)
 					break;
-				else
+				else {*/
 
-				//Формируется массив по каждому объявлению
-				$result[] = [
-					'ссылка' => 'https://avito.ru/'.trim($link),
-					'название' => trim($name),
-					'цена' => trim($price),
-					'картинка' => trim($picture),
-					'метро' => trim($metro),
-					'телефон' => trim($phone),
-					'время' => trim($date)
-				];
+					//Формируется массив по каждому объявлению
+					$result[] = [
+						'ссылка' => 'https://avito.ru/'.trim($link),
+						'название' => trim($name),
+						'цена' => trim($price),
+						'картинка' => trim($picture),
+						'метро' => trim($metro),
+						'телефон' => trim($phone),
+						'время' => trim($date),
+						'time' => date('H:i:s d.m.Y'), //время последнего обновления объявления
+						'request' => $request
+					];
+				//}
 			}
 
 			//Убирает значение страницы, чтобы присоединить другое
 			$url = str_replace('&p='.$numberOfPage, '', $url);
 		}
-
+		
 		return $result; 
 	}
 	
